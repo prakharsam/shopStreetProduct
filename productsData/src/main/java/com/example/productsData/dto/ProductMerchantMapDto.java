@@ -2,11 +2,11 @@ package com.example.productsData.dto;
 
 public class ProductMerchantMapDto {
     private Long rowIndex;
-    private Long productID;
+    private Long productID;//many to one
     private Long merchantID;
     private int weightedFactor;
     private Double productPrice;
-    private int productStock;
+    private Long productStock;
 
     public Long getRowIndex() {
         return rowIndex;
@@ -48,14 +48,26 @@ public class ProductMerchantMapDto {
         this.productPrice = productPrice;
     }
 
-    public int getProductStock() {
+    public Long getProductStock() {
         return productStock;
     }
 
-    public void setProductStock(int productStock) {
+    public void setProductStock(Long productStock) {
         this.productStock = productStock;
     }
 
     public ProductMerchantMapDto() {
+    }
+
+    @Override
+    public String toString() {
+        return "ProductMerchantMapDto{" +
+                "rowIndex=" + rowIndex +
+                ", productID=" + productID +
+                ", merchantID=" + merchantID +
+                ", weightedFactor=" + weightedFactor +
+                ", productPrice=" + productPrice +
+                ", productStock=" + productStock +
+                '}';
     }
 }

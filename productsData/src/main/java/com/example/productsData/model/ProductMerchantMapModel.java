@@ -6,14 +6,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = ProductMerchantMapModel.COLLECTION_NAME)
 public class ProductMerchantMapModel {
 
-    public static final String COLLECTION_NAME="productmerchantdetails";
+    public static final String COLLECTION_NAME="productmerchantdetails1";
     @Id
     private Long rowIndex;
     private Long productID;
     private Long merchantID;
     private int weightedFactor;
     private Double productPrice;
-    private int productStock;
+    private Long productStock;
 
     public Long getProductID() {
         return productID;
@@ -47,11 +47,11 @@ public class ProductMerchantMapModel {
         this.productPrice = productPrice;
     }
 
-    public int getProductStock() {
+    public Long getProductStock() {
         return productStock;
     }
 
-    public void setProductStock(int productStock) {
+    public void setProductStock(Long productStock) {
         this.productStock = productStock;
     }
 

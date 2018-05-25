@@ -11,6 +11,13 @@ public class ProductDto {
     private String productBrandName;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Double productPrice;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Long merchantID;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String merchantName;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String productColor;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String productSize;
@@ -18,6 +25,30 @@ public class ProductDto {
     private String productRamSize;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String productOS;
+
+    public Double getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(Double productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public Long getMerchantID() {
+        return merchantID;
+    }
+
+    public void setMerchantID(Long merchantID) {
+        this.merchantID = merchantID;
+    }
+
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
+    }
 
     public Long getCategoryID() {
         return categoryID;
@@ -111,6 +142,9 @@ public class ProductDto {
                 ", productImgUrl='" + productImgUrl + '\'' +
                 ", productDescription='" + productDescription + '\'' +
                 ", productBrandName='" + productBrandName + '\'' +
+                ", productPrice=" + productPrice +
+                ", merchantID=" + merchantID +
+                ", merchantName='" + merchantName + '\'' +
                 ", productColor='" + productColor + '\'' +
                 ", productSize='" + productSize + '\'' +
                 ", productRamSize='" + productRamSize + '\'' +

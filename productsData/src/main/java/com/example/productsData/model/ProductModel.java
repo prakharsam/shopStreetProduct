@@ -21,6 +21,38 @@ public class ProductModel {
     private String productRamSize;
     private String productOS;
 
+    private Double productPrice;
+    private Long merchantID;
+    private String merchantName;
+
+    public static String getCollectionName() {
+        return COLLECTION_NAME;
+    }
+
+    public Double getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(Double productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public Long getMerchantID() {
+        return merchantID;
+    }
+
+    public void setMerchantID(Long merchantID) {
+        this.merchantID = merchantID;
+    }
+
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
+    }
+
     public Long getCategoryID() {
         return categoryID;
     }
@@ -117,6 +149,9 @@ public class ProductModel {
                 ", productSize='" + productSize + '\'' +
                 ", productRamSize='" + productRamSize + '\'' +
                 ", productOS='" + productOS + '\'' +
+                ", productPrice=" + productPrice +
+                ", merchantID=" + merchantID +
+                ", merchantName='" + merchantName + '\'' +
                 '}';
     }
 }

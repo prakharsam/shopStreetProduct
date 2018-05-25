@@ -3,6 +3,7 @@ package com.example.productsData.controller;
 import com.example.productsData.dto.MerchantDto;
 import com.example.productsData.dto.ProductDto;
 import com.example.productsData.dto.ProductMerchantMapDto;
+import com.example.productsData.dto.UpdateStockDto;
 import com.example.productsData.service.ProductServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,5 +61,17 @@ public class ProductController {
         return productServiceInterface.getMerchantsByProductID(productID);
     }
 
+    @RequestMapping(value = "/update-stock", method = RequestMethod.POST)
+    public ArrayList<Boolean> updateStock(@RequestBody ArrayList<UpdateStockDto> updateStockDto){
+        System.out.println("Entered into update stock");
+        Boolean isAvailable;
+        ArrayList<Boolean> isAvailableList = new ArrayList<>();
+        for(int index=0; index < updateStockDto.size(); index++){
+            isAvailable = productServiceInterface.updateStock(updateStockDto.get(index));
+            isAvailableList.add(isAvailable);
+        }
+
+        return isAvailableList ;
+    }
 
 }

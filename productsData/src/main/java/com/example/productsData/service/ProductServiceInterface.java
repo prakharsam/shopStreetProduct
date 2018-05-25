@@ -3,6 +3,7 @@ package com.example.productsData.service;
 import com.example.productsData.dto.MerchantDto;
 import com.example.productsData.dto.ProductDto;
 import com.example.productsData.dto.ProductMerchantMapDto;
+import com.example.productsData.dto.UpdateStockDto;
 
 import java.util.ArrayList;
 
@@ -19,6 +20,6 @@ public interface ProductServiceInterface {
 
     public ArrayList<ProductMerchantMapDto> getMerchantsByProductID(Long productID);
 
-//    public Boolean updateStock(Long productID,Long merchantID,Long productStock);
+    public Boolean updateStock(UpdateStockDto updateStockDto);
 
 }
