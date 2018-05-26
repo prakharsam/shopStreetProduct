@@ -1,15 +1,12 @@
 package com.example.productsData.service;
 
-import com.example.productsData.dto.MerchantDto;
-import com.example.productsData.dto.ProductDto;
-import com.example.productsData.dto.ProductMerchantMapDto;
-import com.example.productsData.dto.UpdateStockDto;
+import com.example.productsData.client.SearchClientInterface;
+import com.example.productsData.dto.*;
+import com.example.productsData.model.CategoryModel;
 import com.example.productsData.model.MerchantModel;
 import com.example.productsData.model.ProductMerchantMapModel;
 import com.example.productsData.model.ProductModel;
-import com.example.productsData.repository.MerchantRepositoryInterface;
-import com.example.productsData.repository.ProductMerchantMapRepositoryInterface;
-import com.example.productsData.repository.ProductRepositoryInterface;
+import com.example.productsData.repository.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +25,15 @@ public class ProductService implements ProductServiceInterface{
     @Autowired
     public ProductMerchantMapRepositoryInterface productMerchantMapRepositoryInterface;
 
+    @Autowired
+    public ProductSearchRepoInterface productSearchRepoInterface;
+
+    @Autowired
+    public CategoryRepositoryInterface categoryRepositoryInterface;
+
+    @Autowired
+    public SearchClientInterface searchClientInterface;
+
     @Override
     public ProductDto addProduct(ProductDto productDto){
         System.out.println("Adding new product");
@@ -36,6 +42,28 @@ public class ProductService implements ProductServiceInterface{
         ProductModel productModelDetails = productRepositoryInterface.save(productModel);
         ProductDto productDtoDetails = new ProductDto();
         BeanUtils.copyProperties(productModelDetails,productDtoDetails);
+        //make an api for service
+        CategoryDto categoryDto = new CategoryDto();
+        CategoryModel categoryModel =new CategoryModel();
+        categoryDto.setCategoryID(productDtoDetails.getCategoryID());
+        BeanUtils.copyProperties(categoryDto,categoryModel);
+        categoryModel = categoryRepositoryInterface.findById(categoryModel.getCategoryID()).get();
+        BeanUtils.copyProperties(categoryModel,categoryDto);
+
+        ProductSearchDto productSearchDto =new ProductSearchDto();
+        productSearchDto.setProductCategoryName(categoryDto.getCategoryName());
+        productSearchDto.setProductId(productDtoDetails.getProductID());
+        productSearchDto.setProductName(productDtoDetails.getProductName());
+        productSearchDto.setProductImgUrl(productDtoDetails.getProductImgUrl());
+        productSearchDto.setProductDescription(productDtoDetails.getProductDescription());
+        productSearchDto.setProductBrandName(productDtoDetails.getProductBrandName());
+
+        boolean responseSearch = searchClientInterface.sendToSearch(productSearchDto);
+
+        if(!responseSearch){
+            throw new RuntimeException("Something wrong with search micro service...");
+        }
+        System.out.println("Going good with search micro service..");
         return(productDtoDetails);
     }
 
@@ -67,8 +95,19 @@ public class ProductService implements ProductServiceInterface{
     }
 
     @Override
+    public CategoryDto addCategory(CategoryDto categoryDto){
+        System.out.println("Adding category");
+
+        CategoryModel categoryModel = new CategoryModel();
+        BeanUtils.copyProperties(categoryDto,categoryModel);
+        categoryModel = categoryRepositoryInterface.save(categoryModel);
+        BeanUtils.copyProperties(categoryModel,categoryDto);
+
+        return categoryDto;
+    }
+    @Override
     public ProductDto getProductById(Long productID){
-        System.out.println("Getting product by id");
+        System.out.println("Getting product by id "+productID);
 
         ProductDto productDto = new ProductDto();
         productDto.setProductID(productID);
@@ -94,14 +133,21 @@ public class ProductService implements ProductServiceInterface{
         productDto.setCategoryID(categoryID);
         ProductModel productModel = new ProductModel();
         BeanUtils.copyProperties(productDto,productModel);
-        System.out.println("Product id in model of cat "+productModel.getCategoryID());
 
         ArrayList<ProductModel> productModels = new ArrayList<>();
         productModels = productRepositoryInterface.findByCategoryID(productModel.getCategoryID());
+
         ArrayList<ProductDto> productDtos =new ArrayList<>();
         productModelToDto(productModels,productDtos);
 
-        return (productDtos);
+        ArrayList<ProductDto> productDtos_list =new ArrayList<>();
+
+        for(int i=0;i <productDtos.size();i++ ){
+           ProductDto productDto_new = getProductById(productDtos.get(i).getProductID());
+           productDtos_list.add(productDto_new);
+        }
+
+        return (productDtos_list);
     }
 
     public ArrayList<ProductMerchantMapDto> getMerchantsByProductID(Long productID){
@@ -118,11 +164,25 @@ public class ProductService implements ProductServiceInterface{
         ArrayList<ProductMerchantMapDto> productMerchantMapDtos =new ArrayList<>();
         productMerchantModelToDto(productMerchantMapModels,productMerchantMapDtos);
 
+        for (int i=0;i < productMerchantMapDtos.size(); i++){
+            productMerchantMapDtos.get(i).setMerchantName(getMerchantNameById(productMerchantMapDtos.get(i).getMerchantID()));
+        }
         return(productMerchantMapDtos);
     }
 
-    public Boolean updateStock(UpdateStockDto updateStockDto){
-        System.out.println("update stock by pid");
+    public String getMerchantNameById(Long merchantID){
+        MerchantDto merchantDto = new MerchantDto();
+        merchantDto.setMerchantID(merchantID);
+        MerchantModel merchantModel = new MerchantModel();
+        BeanUtils.copyProperties(merchantDto,merchantModel);
+        merchantModel = merchantRepositoryInterface.findById(merchantModel.getMerchantID()).get();
+        BeanUtils.copyProperties(merchantModel,merchantDto);
+
+        return (merchantDto.getMerchantName());
+    }
+
+    public StockResponseDto updateStock(UpdateStockDto updateStockDto){
+        System.out.println(" in check availability ");
 
         ProductMerchantMapModel productMerchantMapModel = new ProductMerchantMapModel();
         productMerchantMapModel.setProductID(updateStockDto.getProductID());
@@ -131,13 +191,51 @@ public class ProductService implements ProductServiceInterface{
         productMerchantMapModel = productMerchantMapRepositoryInterface.findByProductIDAndMerchantID(
                 productMerchantMapModel.getProductID(),productMerchantMapModel.getMerchantID());
 
+        StockResponseDto stockResponseDto =new StockResponseDto();
+
         if(!(( productMerchantMapModel.getProductStock() - updateStockDto.getQty() ) < 0 )){
             System.out.println("in stock : "+productMerchantMapModel.getProductStock()+
                     "in quantity : "+updateStockDto.getQty());
-            //decrement stock in mapping table
-            return true;
+            //Decrement in stock
+            //productMerchantMapModel.setProductStock(productMerchantMapModel.getProductStock() - updateStockDto.getQty());
+            stockResponseDto.setAvailable(true);
+            stockResponseDto.setProductID(productMerchantMapModel.getProductID());
+            System.out.println("id  and available "+stockResponseDto.getProductID() + "  "+stockResponseDto.getAvailable());
+            return stockResponseDto ;
         }
-        return false;
+        System.out.println("not available response");
+        stockResponseDto.setAvailable(false);
+        stockResponseDto.setProductID(productMerchantMapModel.getProductID());
+
+        return stockResponseDto;
+    }
+
+
+    public StockResponseDto checkAvailability(UpdateStockDto updateStockDto){
+        System.out.println(" in check availability ");
+
+        ProductMerchantMapModel productMerchantMapModel = new ProductMerchantMapModel();
+        productMerchantMapModel.setProductID(updateStockDto.getProductID());
+        productMerchantMapModel.setMerchantID(updateStockDto.getMerchantID());
+
+        productMerchantMapModel = productMerchantMapRepositoryInterface.findByProductIDAndMerchantID(
+                productMerchantMapModel.getProductID(),productMerchantMapModel.getMerchantID());
+
+        StockResponseDto stockResponseDto =new StockResponseDto();
+
+        if(!(( productMerchantMapModel.getProductStock() - updateStockDto.getQty() ) < 0 )){
+            System.out.println("in stock : "+productMerchantMapModel.getProductStock()+
+                    "in quantity : "+updateStockDto.getQty());
+            stockResponseDto.setAvailable(true);
+            stockResponseDto.setProductID(productMerchantMapModel.getProductID());
+
+            System.out.println("id  and available "+stockResponseDto.getProductID() + "  "+stockResponseDto.getAvailable());
+            return stockResponseDto ;
+        }
+        System.out.println("not available response");
+        stockResponseDto.setAvailable(false);
+        stockResponseDto.setProductID(productMerchantMapModel.getProductID());
+        return stockResponseDto;
     }
 
     public ProductDto updatePrice(Long productID){
@@ -155,11 +253,10 @@ public class ProductService implements ProductServiceInterface{
                 maxWeightFactor = productMerchantMapDtos.get(loopIndex).getWeightedFactor();
                 merchantIDIndex = productMerchantMapDtos.get(loopIndex).getMerchantID();
                 productPrice =productMerchantMapDtos.get(loopIndex).getProductPrice();
-                System.out.println("merchantIDIndex "+merchantIDIndex);
-                System.out.println("maxWeightFactor "+maxWeightFactor);
+//                System.out.println("merchantIDIndex "+merchantIDIndex);
+//                System.out.println("maxWeightFactor "+maxWeightFactor);
             }
         }
-
         merchantModel.setMerchantID(merchantIDIndex);
 
         merchantModel = merchantRepositoryInterface.findById(merchantModel.getMerchantID()).get();
@@ -189,9 +286,9 @@ public class ProductService implements ProductServiceInterface{
             productDto.setProductOS(productModels.get(i).getProductOS());
             productDto.setProductRamSize(productModels.get(i).getProductRamSize());
             productDto.setProductSize(productModels.get(i).getProductSize());
-            productDto.setMerchantID(productModels.get(i).getMerchantID());
-            productDto.setMerchantName(productModels.get(i).getMerchantName());
-            productDto.setProductPrice(productModels.get(i).getProductPrice());
+//            productDto.setMerchantID(productModels.get(i).getMerchantID());
+//            productDto.setMerchantName(productModels.get(i).getMerchantName());
+//            productDto.setProductPrice(productModels.get(i).getProductPrice());
 
             productDtos.add(productDto);
 

@@ -4,9 +4,20 @@ public class ProductMerchantMapDto {
     private Long rowIndex;
     private Long productID;//many to one
     private Long merchantID;
+
+    private String merchantName;
+
     private int weightedFactor;
     private Double productPrice;
     private Long productStock;
+
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
+    }
 
     public Long getRowIndex() {
         return rowIndex;
