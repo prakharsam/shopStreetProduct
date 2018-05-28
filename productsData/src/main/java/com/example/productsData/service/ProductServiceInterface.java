@@ -25,4 +25,6 @@ public interface ProductServiceInterface {
 
     public CategoryDto addCategory(CategoryDto categoryDto);
 
+    public ProductCartDto getProductForCart(Long productID);
+
 }

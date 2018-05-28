@@ -1,16 +1,16 @@
 package com.example.productsData.controller;
 
 import com.example.productsData.dto.*;
+import com.example.productsData.service.ProductCartRequestService;
+import com.example.productsData.service.ProductCartService;
 import com.example.productsData.service.ProductServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("product")
@@ -63,31 +63,43 @@ public class ProductController {
     }
 
     @RequestMapping(value = "/update-stock", method = RequestMethod.POST)
-    ResponseEntity<ArrayList<StockResponseDto>> updateStock(@RequestBody ArrayList<UpdateStockDto> updateStockDto){
+    ResponseEntity<ProductCartService> updateStock(@RequestBody ProductCartRequestService productCartRequestService){
         System.out.println("Entered into update stock");
         StockResponseDto isAvailable = new StockResponseDto();
-        ArrayList<StockResponseDto> isAvailableList =new ArrayList<>();
+        List<UpdateStockDto> requestList = productCartRequestService.getUpdateStockDtoList();
 
-        for(int index=0; index < updateStockDto.size(); index++){
-            isAvailable = productServiceInterface.updateStock(updateStockDto.get(index));
-            isAvailableList.add(isAvailable);
+        ProductCartService productCartService = new ProductCartService();
+
+        List<StockResponseDto> stockResponseDtos =new ArrayList<>();
+
+        for(int index=0; index < requestList.size(); index++){
+            isAvailable = productServiceInterface.updateStock(requestList.get(index));
+            stockResponseDtos.add(isAvailable);
         }
 
-        return new ResponseEntity<>(isAvailableList, HttpStatus.OK);
+        productCartService.setStockResponseDtoList(stockResponseDtos);
+        System.out.println("done with setting");
+        return new ResponseEntity<>(productCartService, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/check-availability", method = RequestMethod.POST)
-    ResponseEntity<ArrayList<StockResponseDto>> checkAvailability(@RequestBody ArrayList<UpdateStockDto> updateStockDto){
-        System.out.println("Entered into update stock");
+    ResponseEntity<StockResponseDto> checkAvailability(@RequestBody UpdateStockDto updateStockDto){
+        System.out.println("Entered into check availability");
         StockResponseDto isAvailable = new StockResponseDto();
-        ArrayList<StockResponseDto> isAvailableList =new ArrayList<>();
 
-        for(int index=0; index < updateStockDto.size(); index++){
-            isAvailable = productServiceInterface.updateStock(updateStockDto.get(index));
-            isAvailableList.add(isAvailable);
-        }
+        isAvailable = productServiceInterface.updateStock(updateStockDto);
+        System.out.println("after check: "+isAvailable.getAvailable());
 
-        return new ResponseEntity<>(isAvailableList, HttpStatus.OK);
+        return new ResponseEntity<>(isAvailable, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/get-product-for-cart/{productID}", method = RequestMethod.GET)
+    ResponseEntity<ProductCartDto> getProductForCart(@PathVariable Long productID){
+        System.out.println("Entered into get product for cart");
+
+        ProductCartDto productCartDto = productServiceInterface.getProductForCart(productID);
+
+        return new ResponseEntity<>(productCartDto, HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/add-category", method = RequestMethod.POST)

@@ -12,6 +12,4 @@ public interface ProductMerchantMapRepositoryInterface extends MongoRepository<P
 
     public ProductMerchantMapModel findByProductIDAndMerchantID(Long productID ,Long merchantID);
 
-//    @Query("select productPrice where productID = ?1 and ")
-//    Double findMinPrice(Long productID);
 }
