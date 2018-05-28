@@ -42,6 +42,7 @@ public class ProductService implements ProductServiceInterface{
 //        productDto.setProductID(uuid.getMostSignificantBits());
 //
 //        System.out.println("setting product id: "+productDto.getProductID());
+
         ProductModel productModel = new ProductModel();
         BeanUtils.copyProperties(productDto,productModel);
         productModel = productRepositoryInterface.save(productModel);
@@ -62,14 +63,27 @@ public class ProductService implements ProductServiceInterface{
         productSearchDto.setProductDescription(productDto.getProductDescription());
         productSearchDto.setProductBrandName(productDto.getProductBrandName());
 
-//        boolean responseSearch = searchClientInterface.sendToSearch(productSearchDto);
-//
-//        if(!responseSearch){
-//            throw new RuntimeException("Something wrong with search micro service...");
-//        }
-        System.out.println("Going good with search micro service..");
+        boolean responseSearch = searchClientInterface.sendToSearch(productSearchDto);
+
+        if(!responseSearch){
+            throw new RuntimeException("Something wrong with search micro service...");
+        }
+        System.out.println("Going good with search micro service.."+responseSearch);
         System.out.println("product id in db and search: "+ productDto.getProductID() +"  "+productSearchDto.getProductId());
         return(productDto);
+    }
+
+    public boolean deleteProduct(Long productID){
+        ProductDto productDto =new ProductDto();
+        productDto.setProductID(productID);
+
+        ProductModel productModel = new ProductModel();
+        BeanUtils.copyProperties(productDto,productModel);
+        if(!productRepositoryInterface.existsById(productModel.getProductID())) {
+            throw new RuntimeException("Product with queried ID doesn't exist to delete") ;
+        }
+        productRepositoryInterface.deleteById(productModel.getProductID());
+        return (true);
     }
 
     @Override
@@ -137,7 +151,7 @@ public class ProductService implements ProductServiceInterface{
 
         ArrayList<ProductModel> productModels = new ArrayList<>();
         productModels = productRepositoryInterface.findByCategoryID(productModel.getCategoryID());
-
+        System.out.println("size of productmodels list: "+productModels.size());
         ArrayList<ProductDto> productDtos =new ArrayList<>();
         productModelToDto(productModels,productDtos);
 
@@ -185,7 +199,7 @@ public class ProductService implements ProductServiceInterface{
     }
 
     public StockResponseDto updateStock(UpdateStockDto updateStockDto){
-        System.out.println(" in check availability ");
+        System.out.println(" in update stock ");
 
         ProductMerchantMapModel productMerchantMapModel = new ProductMerchantMapModel();
         productMerchantMapModel.setProductID(updateStockDto.getProductID());

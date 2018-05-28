@@ -67,7 +67,7 @@ public class ProductController {
         System.out.println("Entered into update stock");
         StockResponseDto isAvailable = new StockResponseDto();
         List<UpdateStockDto> requestList = productCartRequestService.getUpdateStockDtoList();
-
+        System.out.println("request size: "+requestList.size());
         ProductCartService productCartService = new ProductCartService();
 
         List<StockResponseDto> stockResponseDtos =new ArrayList<>();
@@ -78,6 +78,7 @@ public class ProductController {
         }
 
         productCartService.setStockResponseDtoList(stockResponseDtos);
+        System.out.println("response list: "+stockResponseDtos.size());
         System.out.println("done with setting");
         return new ResponseEntity<>(productCartService, HttpStatus.OK);
     }
@@ -87,7 +88,7 @@ public class ProductController {
         System.out.println("Entered into check availability");
         StockResponseDto isAvailable = new StockResponseDto();
 
-        isAvailable = productServiceInterface.updateStock(updateStockDto);
+        isAvailable = productServiceInterface.checkAvailability(updateStockDto);
         System.out.println("after check: "+isAvailable.getAvailable());
 
         return new ResponseEntity<>(isAvailable, HttpStatus.OK);
@@ -109,4 +110,13 @@ public class ProductController {
 
         return new ResponseEntity<>(categoryDto, HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/delete-product", method = RequestMethod.GET)
+    public boolean deleteEmployee(@RequestParam Long productID){
+        System.out.println("Delete id"+ productID);
+
+        return productServiceInterface.deleteProduct(productID);
+    }
+
+
 }

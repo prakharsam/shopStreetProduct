@@ -7,6 +7,8 @@ import java.util.ArrayList;
 public interface ProductServiceInterface {
     public ProductDto addProduct(ProductDto productDto);
 
+    public boolean deleteProduct(Long productID);
+
     public MerchantDto addMerchant(MerchantDto merchantDto);
 
     public ProductMerchantMapDto addProductMerchant(ProductMerchantMapDto productMerchantMapDto);
