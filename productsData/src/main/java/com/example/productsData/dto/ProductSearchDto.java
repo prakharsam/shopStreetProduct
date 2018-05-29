@@ -2,32 +2,72 @@ package com.example.productsData.dto;
 
 public class ProductSearchDto {
 
-    private Long productId;
-    //private Long categoryID;
+    private Long productID;
     private  String productCategoryName;
     private String productName;
     private String productImgUrl;
     private String productDescription;
     private String productBrandName;
 
-    public ProductSearchDto(Long productID, String categoryName, String productName, String productImgUrl, String productDescription, String productBrandName) {
-        this.productId = productID;
-        this.productCategoryName = categoryName;
-        this.productName = productName;
-        this.productImgUrl = productImgUrl;
-        this.productDescription = productDescription;
-        this.productBrandName = productBrandName;
+    private Long merchantID;
+    private String productMerchantName;
+    private  Double productPrice;
+    private  int merchantCount;
+
+    public int getMerchantCount() {
+        return merchantCount;
+    }
+
+    public void setMerchantCount(int merchantCount) {
+        this.merchantCount = merchantCount;
+    }
+
+    public Long getMerchantID() {
+        return merchantID;
+    }
+
+    public void setMerchantID(Long merchantID) {
+        this.merchantID = merchantID;
+    }
+
+    public String getProductMerchantName() {
+        return productMerchantName;
+    }
+
+    public void setProductMerchantName(String productMerchantName) {
+        this.productMerchantName = productMerchantName;
+    }
+
+    public Double getProductPrice() {
+        return productPrice;
+    }
+
+    public void setProductPrice(Double productPrice) {
+        this.productPrice = productPrice;
     }
 
     public ProductSearchDto() {
     }
 
-    public Long getProductId() {
-        return productId;
+    public ProductSearchDto(Long productID, String productCategoryName, String productName, String productImgUrl, String productDescription, String productBrandName, Long merchantID, String productMerchantName, Double productPrice, int merchantCount) {
+        this.productID = productID;
+        this.productCategoryName = productCategoryName;
+        this.productName = productName;
+        this.productImgUrl = productImgUrl;
+        this.productDescription = productDescription;
+        this.productBrandName = productBrandName;
+        this.merchantID = merchantID;
+        this.productMerchantName = productMerchantName;
+        this.productPrice = productPrice;
+        this.merchantCount = merchantCount;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public Long getProductID() {
+        return productID;
+    }
+
+    public void setProductID(Long productID) {
+        this.productID = productID;
     }
 
     public String getProductCategoryName() {
@@ -69,4 +109,5 @@ public class ProductSearchDto {
     public void setProductBrandName(String productBrandName) {
         this.productBrandName = productBrandName;
     }
+
 }

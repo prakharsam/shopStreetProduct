@@ -43,6 +43,9 @@ public class ProductController {
     ResponseEntity<ProductDto> getProductById(Long productID){
         System.out.println("Entered into get product by id");
         ProductDto productDto = productServiceInterface.getProductById(productID);
+//        productServiceInterface.computeWeightedFactor(20L,5L);
+//        productServiceInterface.computeWeightedFactor(1L,1L);
+
         return new ResponseEntity<>(productDto, HttpStatus.OK);
      }
 
@@ -99,8 +102,8 @@ public class ProductController {
         System.out.println("Entered into get product for cart");
 
         ProductCartDto productCartDto = productServiceInterface.getProductForCart(productID);
-
-        return new ResponseEntity<>(productCartDto, HttpStatus.CREATED);
+        System.out.println("cart image: "+productCartDto.getProductName());
+        return new ResponseEntity<>(productCartDto, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/add-category", method = RequestMethod.POST)
@@ -116,6 +119,21 @@ public class ProductController {
         System.out.println("Delete id"+ productID);
 
         return productServiceInterface.deleteProduct(productID);
+    }
+
+    @RequestMapping(value = "/add-into-search", method = RequestMethod.GET)
+    ResponseEntity<ProductSearchDto> addProductForSearch(@RequestParam Long productID){
+        System.out.println("Entered into add into search");
+        ProductSearchDto productSearchDto = productServiceInterface.addProductForSearch(productID);
+
+        return new ResponseEntity<>(productSearchDto, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/compute-wf", method = RequestMethod.GET)
+    void computeWeightedFactor(@RequestParam Long productID, @RequestParam Long merchantID){
+        System.out.println("Entered into add into search");
+        productServiceInterface.computeWeightedFactor(productID,merchantID);
+        System.out.println("done with wf");
     }
 
 

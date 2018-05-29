@@ -11,6 +11,16 @@ public class ProductMerchantMapDto {
     private Double productPrice;
     private Long productStock;
 
+    private Long productSold;
+
+    public Long getProductSold() {
+        return productSold;
+    }
+
+    public void setProductSold(Long productSold) {
+        this.productSold = productSold;
+    }
+
     public String getMerchantName() {
         return merchantName;
     }

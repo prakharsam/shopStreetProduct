@@ -15,6 +15,16 @@ public class ProductMerchantMapModel {
     private Double productPrice;
     private Long productStock;
 
+    private Long productSold;
+
+    public Long getProductSold() {
+        return productSold;
+    }
+
+    public void setProductSold(Long productSold) {
+        this.productSold = productSold;
+    }
+
     public Long getProductID() {
         return productID;
     }

@@ -21,12 +21,19 @@ public class ProductModel {
     private String productRamSize;
     private String productOS;
 
+    private int productRating;
+
 //    private Double productPrice;
 //    private Long merchantID;
 //    private String merchantName;
 
-    public static String getCollectionName() {
-        return COLLECTION_NAME;
+
+    public int getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(int productRating) {
+        this.productRating = productRating;
     }
 
     public Long getCategoryID() {

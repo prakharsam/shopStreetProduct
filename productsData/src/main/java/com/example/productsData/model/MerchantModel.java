@@ -10,6 +10,15 @@ public class MerchantModel {
     @Id
     private Long merchantID;
     private String merchantName;
+    private int merchantRating;
+
+    public int getMerchantRating() {
+        return merchantRating;
+    }
+
+    public void setMerchantRating(int merchantRating) {
+        this.merchantRating = merchantRating;
+    }
 
     public Long getMerchantID() {
         return merchantID;

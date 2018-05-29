@@ -29,4 +29,8 @@ public interface ProductServiceInterface {
 
     public ProductCartDto getProductForCart(Long productID);
 
+    public  ProductSearchDto addProductForSearch(Long productID);
+
+    public void computeWeightedFactor(Long productID,Long merchantID);
+
 }

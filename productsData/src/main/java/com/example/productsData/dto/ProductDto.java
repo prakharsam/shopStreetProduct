@@ -10,6 +10,8 @@ public class ProductDto {
     private String productDescription;
     private String productBrandName;
 
+    private int productRating;
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Double productPrice;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -25,6 +27,14 @@ public class ProductDto {
     private String productRamSize;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String productOS;
+
+    public int getProductRating() {
+        return productRating;
+    }
+
+    public void setProductRating(int productRating) {
+        this.productRating = productRating;
+    }
 
     public Double getProductPrice() {
         return productPrice;

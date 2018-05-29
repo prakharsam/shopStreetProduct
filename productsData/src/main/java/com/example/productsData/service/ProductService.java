@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 @Service
 public class ProductService implements ProductServiceInterface{
@@ -38,10 +37,6 @@ public class ProductService implements ProductServiceInterface{
     @Override
     public ProductDto addProduct(ProductDto productDto){
         System.out.println("Adding new product");
-//        UUID uuid = UUID.randomUUID();
-//        productDto.setProductID(uuid.getMostSignificantBits());
-//
-//        System.out.println("setting product id: "+productDto.getProductID());
 
         ProductModel productModel = new ProductModel();
         BeanUtils.copyProperties(productDto,productModel);
@@ -57,19 +52,14 @@ public class ProductService implements ProductServiceInterface{
 
         ProductSearchDto productSearchDto =new ProductSearchDto();
         productSearchDto.setProductCategoryName(categoryDto.getCategoryName());
-        productSearchDto.setProductId(productDto.getProductID());
+        productSearchDto.setProductID(productDto.getProductID());
         productSearchDto.setProductName(productDto.getProductName());
         productSearchDto.setProductImgUrl(productDto.getProductImgUrl());
         productSearchDto.setProductDescription(productDto.getProductDescription());
         productSearchDto.setProductBrandName(productDto.getProductBrandName());
 
-        boolean responseSearch = searchClientInterface.sendToSearch(productSearchDto);
 
-        if(!responseSearch){
-            throw new RuntimeException("Something wrong with search micro service...");
-        }
-        System.out.println("Going good with search micro service.."+responseSearch);
-        System.out.println("product id in db and search: "+ productDto.getProductID() +"  "+productSearchDto.getProductId());
+        System.out.println("product id in db and search: "+ productDto.getProductID() +"  "+productSearchDto.getProductID());
         return(productDto);
     }
 
@@ -181,7 +171,9 @@ public class ProductService implements ProductServiceInterface{
         productMerchantModelToDto(productMerchantMapModels,productMerchantMapDtos);
 
         for (int i=0;i < productMerchantMapDtos.size(); i++){
+
             productMerchantMapDtos.get(i).setMerchantName(getMerchantNameById(productMerchantMapDtos.get(i).getMerchantID()));
+            System.out.println("sold in merchant: "+productMerchantMapDtos.get(i).getProductStock());
         }
         return(productMerchantMapDtos);
     }
@@ -215,10 +207,19 @@ public class ProductService implements ProductServiceInterface{
                     "in quantity : "+updateStockDto.getQty());
             //Decrement in stock
             productMerchantMapModel.setProductStock(productMerchantMapModel.getProductStock() - updateStockDto.getQty());
+            if(productMerchantMapModel.getProductSold() == null)
+                productMerchantMapModel.setProductSold(0L);
+
+            productMerchantMapModel.setProductSold(productMerchantMapModel.getProductSold() + updateStockDto.getQty());
 
             productMerchantMapModel = productMerchantMapRepositoryInterface.save(productMerchantMapModel);
 
             System.out.println("after reducing in stock: "+productMerchantMapModel.getProductStock());
+            System.out.println("after adding in sold: "+ productMerchantMapModel.getProductSold());
+
+            computeWeightedFactor(productMerchantMapModel.getProductID(),productMerchantMapModel.getMerchantID());
+            System.out.println("going to comppute wf function");
+
             stockResponseDto.setAvailable(true);
             stockResponseDto.setProductID(productMerchantMapModel.getProductID());
             System.out.println("id  and available "+stockResponseDto.getProductID() + "  "+stockResponseDto.getAvailable());
@@ -309,7 +310,7 @@ public class ProductService implements ProductServiceInterface{
             productDto.setProductRamSize(productModels.get(i).getProductRamSize());
             productDto.setProductSize(productModels.get(i).getProductSize());
 //            productDto.setMerchantID(productModels.get(i).getMerchantID());
-//            productDto.setMerchantName(productModels.get(i).getMerchantName());
+//            productDto.setProductMerchantName(productModels.get(i).getProductMerchantName());
 //            productDto.setProductPrice(productModels.get(i).getProductPrice());
 
             productDtos.add(productDto);
@@ -351,29 +352,112 @@ public class ProductService implements ProductServiceInterface{
         System.out.println("get image url: "+productCartDto.getImage());
         return (productCartDto);
     }
+
+    public  ProductSearchDto addProductForSearch(Long productID){
+        System.out.println("in add product for search");
+        /* To Get merchant name,id, price from update price */
+        ProductDto productDto = getProductById(productID);
+        ProductSearchDto productSearchDto = new ProductSearchDto();
+        /*Get category name */
+        CategoryDto categoryDto = new CategoryDto();
+        CategoryModel categoryModel =new CategoryModel();
+        categoryDto.setCategoryID(productDto.getCategoryID());
+        BeanUtils.copyProperties(categoryDto,categoryModel);
+        categoryModel = categoryRepositoryInterface.findById(categoryModel.getCategoryID()).get();
+        BeanUtils.copyProperties(categoryModel,categoryDto);
+
+        /* get merchant list*/
+        ArrayList<ProductMerchantMapModel> productMerchantMapModels =new ArrayList<>();
+        productMerchantMapModels =
+                productMerchantMapRepositoryInterface.findByProductID(productDto.getProductID());
+        int merchantCount = productMerchantMapModels.size();
+
+        productSearchDto.setProductID(productDto.getProductID());
+        productSearchDto.setProductCategoryName(categoryModel.getCategoryName());
+        productSearchDto.setProductName(productDto.getProductName());
+        productSearchDto.setProductImgUrl(productDto.getProductImgUrl());
+        productSearchDto.setProductDescription(productDto.getProductDescription());
+        productSearchDto.setProductBrandName(productDto.getProductBrandName());
+        productSearchDto.setProductPrice(productDto.getProductPrice());
+        productSearchDto.setMerchantID(productDto.getMerchantID());
+        productSearchDto.setProductMerchantName(productDto.getMerchantName());
+        productSearchDto.setMerchantCount(merchantCount);
+        System.out.println("adding into search");
+
+        boolean responseSearch = searchClientInterface.sendToSearch(productSearchDto);
+
+        if(!responseSearch){
+            throw new RuntimeException("Something wrong with search micro service...");
+        }
+        System.out.println("Going good with search micro service.."+responseSearch);
+
+        return  productSearchDto;
+
+    }
+
+    public void computeWeightedFactor(Long productID,Long merchantID){
+        int weightage1 =10 ;
+        int weightage2 =10 ;
+        int weightage3 =10 ;
+        int weightage4 =10 ;
+        int weightage5 =10 ;
+        int weightage6 =10;
+
+        Long productStock = null;
+        Long productSold  = null;
+        int merchantRating = 0;
+        Double productPrice = null;
+        int productRating = 0;
+        int currentStock =0;
+
+        int weightedFactor = 0;
+
+        System.out.println("in weighted factor with pid: "+productID +" mid: "+merchantID);
+
+        ProductMerchantMapModel productMerchantMapModel = new ProductMerchantMapModel();
+        productMerchantMapModel.setProductID(productID);
+        productMerchantMapModel.setMerchantID(merchantID);
+
+        productMerchantMapModel = productMerchantMapRepositoryInterface.findByProductIDAndMerchantID(
+                productMerchantMapModel.getProductID(),productMerchantMapModel.getMerchantID());
+
+
+        productStock = productMerchantMapModel.getProductStock();
+        productSold = productMerchantMapModel.getProductSold();
+
+        MerchantModel merchantModel = new MerchantModel();
+        merchantRating =
+                merchantRepositoryInterface.findById(productMerchantMapModel.getMerchantID()).get().getMerchantRating();
+
+        productRating = productRepositoryInterface.findById(productMerchantMapModel.getProductID()).get().getProductRating();
+
+        productPrice = productMerchantMapModel.getProductPrice();
+        if(productSold == null || productStock ==null){
+            productSold = 0L;
+            productStock = 0L;
+        }
+        currentStock = (int) (productStock -productSold);
+        System.out.println("currentStock: "+currentStock + "productPrice: "+productPrice);
+        System.out.println("productStock "+productStock + "productSold: "+productSold);
+        System.out.println("merchantRating: "+merchantRating + "productRating: "+productRating);
+
+        weightedFactor = (int) (((weightage1 * productStock) + (weightage2 * productSold) + (weightage3 * merchantRating)
+                    + (weightage4 * productPrice) + (weightage5 * productRating) + (weightage6 * currentStock))/6000 );
+
+        productMerchantMapModel.setWeightedFactor(weightedFactor);
+        System.out.println("computation of wf: "+weightedFactor);
+    }
+
+
 }
 
-//    public void computeWeightedFactor(int weightage1, int weightage2, int weightage3, int weightage4, int weightage5){
-//        Long productQuantity = null;
-//        Long productSold  = null;
-//        int merchantRating = 0;
-//        Double price = null;
-//        int customerRating = 0;
-//        int weightedFactor = 0;
-//
-//
-//        weightedFactor = (int) (((weightage1 * productQuantity) + (weightage2 * productSold) +
-// (weightage3 * merchantRating)
-//        + (weightage4 * price) + (weightage5 * customerRating))/5 );
-//
-//        System.out.println("computation: "+weightedFactor);
-//    }
-
-
-//    Number of products the merchant offers to sell
-//        - Number of products sold (number of orders created)
-//                - Current stock of the product
-//                - Merchant rating
-//                - Price of the products by various merchants
-//                - Customer reviews/rating given to the products of various merchants
-
+//    @Value("service.weightedFactor.weightage1")
+//    int weightage1;
+//    @Value("service.weightedFactor.weightage2")
+//    int weightage2;
+//    @Value("service.weightedFactor.weightage3")
+//    int weightage3;
+//    @Value("service.weightedFactor.weightage4")
+//    int weightage4;
+//    @Value("service.weightedFactor.weightage5")
+//    int weightage5;
