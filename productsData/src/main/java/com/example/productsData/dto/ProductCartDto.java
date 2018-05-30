@@ -5,8 +5,26 @@ public class ProductCartDto {
     private Long productID;
     private String productName;
     private String image;
+    private boolean success;
+    private String message;
 
     public ProductCartDto() {
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public Long getProductID() {

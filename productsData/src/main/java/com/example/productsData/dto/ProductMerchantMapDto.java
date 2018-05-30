@@ -12,6 +12,15 @@ public class ProductMerchantMapDto {
     private Long productStock;
 
     private Long productSold;
+    private int merchantRating;
+
+    public int getMerchantRating() {
+        return merchantRating;
+    }
+
+    public void setMerchantRating(int merchantRating) {
+        this.merchantRating = merchantRating;
+    }
 
     public Long getProductSold() {
         return productSold;
